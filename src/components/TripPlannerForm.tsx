@@ -151,12 +151,12 @@ export default function TripPlannerForm({ onSubmit, isLoading }: TripPlannerForm
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                <span>Crafting Your Perfect Trip...</span>
+                <span>AI is Crafting Your Perfect Trip...</span>
               </>
             ) : (
               <>
                 <Sparkles className="h-6 w-6" />
-                <span>Generate My Itinerary</span>
+                <span>Generate AI Itinerary</span>
                 <ArrowRight className="h-6 w-6" />
               </>
             )}

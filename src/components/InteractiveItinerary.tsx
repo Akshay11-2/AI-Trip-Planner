@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Settings, RefreshCw, Save } from 'lucide-react';
+import { ArrowLeft, Settings, RefreshCw, Save, Sparkles } from 'lucide-react';
 import { TripInput, TripItinerary } from '../types';
 import { useLiveData } from '../hooks/useLiveData';
+import { generateActivitySuggestions } from '../services/openaiService';
 import LiveDataLoader from './LiveDataLoader';
 import FlightCard from './FlightCard';
 import HotelCard from './HotelCard';
@@ -27,6 +28,8 @@ export default function InteractiveItinerary({
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const [addedActivities, setAddedActivities] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   
   const liveData = useLiveData(tripInput);
 
@@ -129,6 +132,28 @@ export default function InteractiveItinerary({
     onSave(currentItinerary);
   };
 
+  const handleGetAISuggestions = async () => {
+    setLoadingSuggestions(true);
+    try {
+      const existingActivityNames = currentItinerary.days
+        .flatMap(day => day.activities)
+        .map(activity => activity.name);
+      
+      const suggestions = await generateActivitySuggestions(
+        tripInput.destination,
+        tripInput.budget,
+        tripInput.groupType,
+        existingActivityNames
+      );
+      
+      setAiSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error getting AI suggestions:', error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <LiveDataLoader isLoading={liveData.isLoading} progress={loadingProgress} />
@@ -149,6 +174,14 @@ export default function InteractiveItinerary({
               <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all">
                 <RefreshCw className="h-4 w-4" />
                 <span>Refresh Data</span>
+              </button>
+              <button 
+                onClick={handleGetAISuggestions}
+                disabled={loadingSuggestions}
+                className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-all"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>{loadingSuggestions ? 'Getting AI Suggestions...' : 'AI Suggestions'}</span>
               </button>
               <button 
                 onClick={handleSaveItinerary}
@@ -226,6 +259,30 @@ export default function InteractiveItinerary({
             {/* Activities Selection */}
             <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Add Activities</h2>
+              
+              {/* AI Suggestions Section */}
+              {aiSuggestions.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Sparkles className="h-5 w-5 text-purple-600" />
+                    <h3 className="text-lg font-semibold text-gray-800">AI Recommendations</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {aiSuggestions.map((activity) => (
+                      <LiveActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        onAdd={handleActivityAdd}
+                        isAdded={addedActivities.some(a => a.id === activity.id)}
+                      />
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-200 pt-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Live Activity Options</h3>
+                  </div>
+                </div>
+              )}
+              
               {liveData.activities.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {liveData.activities.map((activity) => (

@@ -27,13 +27,16 @@ function App() {
     setIsGenerating(true);
     setCurrentTripInput(input);
     
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const itinerary = generateTripItinerary(input);
-    setCurrentItinerary(itinerary);
-    setCurrentView('interactive'); // Start with interactive view for Phase 2
-    setIsGenerating(false);
+    try {
+      const itinerary = await generateTripItinerary(input);
+      setCurrentItinerary(itinerary);
+      setCurrentView('interactive'); // Start with interactive view for Phase 2
+    } catch (error) {
+      console.error('Error generating trip:', error);
+      alert('Failed to generate trip. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleBackToPlanner = () => {

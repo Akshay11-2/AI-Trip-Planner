@@ -1,8 +1,23 @@
 import { TripInput, TripItinerary, ItineraryDay } from '../types';
 import { mockActivities, mockAccommodations, mockTransport, destinationImages } from './mockData';
 import { v4 as uuidv4 } from 'uuid';
+import { generateAITripItinerary } from '../services/openaiService';
 
-export function generateTripItinerary(input: TripInput): TripItinerary {
+export async function generateTripItinerary(input: TripInput): Promise<TripItinerary> {
+  // Try to use AI generation first
+  if (import.meta.env.VITE_OPENAI_API_KEY) {
+    try {
+      return await generateAITripItinerary(input);
+    } catch (error) {
+      console.warn('AI generation failed, falling back to mock data:', error);
+    }
+  }
+  
+  // Fallback to mock data generation
+  return generateMockItinerary(input);
+}
+
+function generateMockItinerary(input: TripInput): TripItinerary {
   const destinationKey = input.destination.toLowerCase();
   const activities = mockActivities[destinationKey] || mockActivities.paris;
   const accommodation = mockAccommodations[destinationKey]?.[input.budget] || mockAccommodations.paris[input.budget];

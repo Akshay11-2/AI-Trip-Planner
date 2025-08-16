@@ -10,18 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.55.0",
-    "@types/uuid": "^10.0.0",
-    "axios": "^1.11.0",
-    "date-fns": "^4.1.0",
     "lucide-react": "^0.344.0",
     "openai": "^5.12.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "uuid": "^11.1.0"
+    "react-dom": "^18.3.1"
   },
-  "devDependencies": {
-    "@eslint/js": "^9.9.1",
+    "react-dom": "^18.3.1"
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

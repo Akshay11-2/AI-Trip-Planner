@@ -1,6 +1,5 @@
 import { TripInput, TripItinerary, ItineraryDay } from '../types';
 import { mockActivities, mockAccommodations, mockTransport, destinationImages } from './mockData';
-import { v4 as uuidv4 } from 'uuid';
 import { generateAITripItinerary } from '../services/openaiService';
 
 export async function generateTripItinerary(input: TripInput): Promise<TripItinerary> {
@@ -59,7 +58,7 @@ function generateMockItinerary(input: TripInput): TripItinerary {
   const totalCost = activitiesTotal + accommodationTotal + transportTotal;
 
   return {
-    id: uuidv4(),
+    id: Date.now().toString(),
     destination: input.destination,
     duration: input.duration,
     budget: input.budget,
@@ -71,40 +70,4 @@ function generateMockItinerary(input: TripInput): TripItinerary {
     createdAt: new Date().toISOString(),
     destinationImage: destinationImages[destinationKey] || destinationImages.default
   };
-}
-
-export function saveTrip(name: string, itinerary: TripItinerary): void {
-  const savedTrips = getSavedTrips();
-  const newTrip = {
-    id: uuidv4(),
-    name,
-    destination: itinerary.destination,
-    createdAt: new Date().toISOString(),
-    itinerary
-  };
-  
-  savedTrips.push(newTrip);
-  localStorage.setItem('masterplan_trips', JSON.stringify(savedTrips));
-}
-
-export function updateTrip(tripId: string, updatedItinerary: TripItinerary): void {
-  const savedTrips = getSavedTrips();
-  const tripIndex = savedTrips.findIndex((trip: any) => trip.id === tripId);
-  
-  if (tripIndex !== -1) {
-    savedTrips[tripIndex].itinerary = updatedItinerary;
-    savedTrips[tripIndex].updatedAt = new Date().toISOString();
-    localStorage.setItem('masterplan_trips', JSON.stringify(savedTrips));
-  }
-}
-
-export function getSavedTrips() {
-  const stored = localStorage.getItem('masterplan_trips');
-  return stored ? JSON.parse(stored) : [];
-}
-
-export function deleteTrip(tripId: string): void {
-  const savedTrips = getSavedTrips();
-  const filtered = savedTrips.filter((trip: any) => trip.id !== tripId);
-  localStorage.setItem('masterplan_trips', JSON.stringify(filtered));
 }

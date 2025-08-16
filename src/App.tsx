@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
-import { useAuth } from './hooks/useAuth';
 import Header from './components/Header';
-import AuthModal from './components/AuthModal';
-import UserProfile from './components/UserProfile';
 import TripPlannerForm from './components/TripPlannerForm';
 import ItineraryDisplay from './components/ItineraryDisplay';
 import InteractiveItinerary from './components/InteractiveItinerary';
 import SavedTrips from './components/SavedTrips';
 import { TripInput, TripItinerary, SavedTrip } from './types';
 import { generateTripItinerary } from './utils/tripGenerator';
-import { saveTripToSupabase, updateTripInSupabase } from './utils/supabaseTrips';
 
-type ViewType = 'planner' | 'saved' | 'profile' | 'itinerary' | 'interactive';
+type ViewType = 'planner' | 'saved' | 'itinerary' | 'interactive';
 
 function App() {
-  const { user, loading: authLoading } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('planner');
   const [currentItinerary, setCurrentItinerary] = useState<TripItinerary | null>(null);
   const [currentTripInput, setCurrentTripInput] = useState<TripInput | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [language, setLanguage] = useState('en');
   const [currency, setCurrency] = useState('USD');
 
@@ -60,44 +54,33 @@ function App() {
   const handleSaveItinerary = (itinerary: TripItinerary) => {
     const tripName = `${itinerary.destination} ${new Date().getFullYear()}`;
     
-    if (user) {
-      saveTripToSupabase(tripName, itinerary)
-        .then(() => {
-          alert('Trip saved successfully!');
-        })
-        .catch((error) => {
-          console.error('Error saving trip:', error);
-          alert('Failed to save trip. Please try again.');
-        });
-    } else {
-      setAuthModalOpen(true);
+    try {
+      // Save to localStorage
+      const savedTrips = JSON.parse(localStorage.getItem('masterplan_trips') || '[]');
+      const newTrip = {
+        id: Date.now().toString(),
+        name: tripName,
+        destination: itinerary.destination,
+        createdAt: new Date().toISOString(),
+        itinerary
+      };
+      
+      savedTrips.push(newTrip);
+      localStorage.setItem('masterplan_trips', JSON.stringify(savedTrips));
+      alert('Trip saved successfully!');
+    } catch (error) {
+      console.error('Error saving trip:', error);
+      alert('Failed to save trip. Please try again.');
     }
   };
 
-  const handleViewChange = (view: 'planner' | 'saved' | 'profile') => {
-    if ((view === 'saved' || view === 'profile') && !user) {
-      setAuthModalOpen(true);
-      return;
-    }
-    
+  const handleViewChange = (view: 'planner' | 'saved') => {
     setCurrentView(view);
     if (view === 'planner') {
       setCurrentItinerary(null);
       setCurrentTripInput(null);
     }
   };
-
-  const handleAuthClick = () => {
-    setAuthModalOpen(true);
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
 
   if (currentView === 'interactive' && currentItinerary && currentTripInput) {
     return (
@@ -118,7 +101,6 @@ function App() {
         <Header 
           currentView="planner" 
           onViewChange={handleViewChange}
-          onAuthClick={handleAuthClick}
           language={language}
           currency={currency}
           onLanguageChange={setLanguage}
@@ -138,7 +120,6 @@ function App() {
         <Header 
           currentView="saved" 
           onViewChange={handleViewChange}
-          onAuthClick={handleAuthClick}
           language={language}
           currency={currency}
           onLanguageChange={setLanguage}
@@ -149,29 +130,17 @@ function App() {
     );
   }
 
-  if (currentView === 'profile') {
-    return (
-      <UserProfile onClose={() => setCurrentView('planner')} />
-    );
-  }
-
   return (
     <div>
       <Header 
         currentView="planner" 
         onViewChange={handleViewChange}
-        onAuthClick={handleAuthClick}
         language={language}
         currency={currency}
         onLanguageChange={setLanguage}
         onCurrencyChange={setCurrency}
       />
       <TripPlannerForm onSubmit={handlePlanTrip} isLoading={isGenerating} />
-      
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
     </div>
   );
 }

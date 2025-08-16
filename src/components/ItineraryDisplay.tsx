@@ -5,7 +5,6 @@ import DayCard from './DayCard';
 import AccommodationCard from './AccommodationCard';
 import TransportCard from './TransportCard';
 import CostSummary from './CostSummary';
-import { saveTrip } from '../utils/tripGenerator';
 
 interface ItineraryDisplayProps {
   itinerary: TripItinerary;
@@ -21,13 +20,26 @@ export default function ItineraryDisplay({ itinerary, onBack }: ItineraryDisplay
     if (tripName.trim()) {
       setIsSaving(true);
       try {
-        saveTrip(tripName, itinerary);
+        // Save to localStorage
+        const savedTrips = JSON.parse(localStorage.getItem('masterplan_trips') || '[]');
+        const newTrip = {
+          id: Date.now().toString(),
+          name: tripName,
+          destination: itinerary.destination,
+          createdAt: new Date().toISOString(),
+          itinerary
+        };
+        
+        savedTrips.push(newTrip);
+        localStorage.setItem('masterplan_trips', JSON.stringify(savedTrips));
         setShowSaveDialog(false);
         setTripName('');
+        alert('Trip saved successfully!');
         // Show success message
         setTimeout(() => setIsSaving(false), 1000);
       } catch (error) {
         console.error('Error saving trip:', error);
+        alert('Failed to save trip. Please try again.');
         setIsSaving(false);
       }
     }

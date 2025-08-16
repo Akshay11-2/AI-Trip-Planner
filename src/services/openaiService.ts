@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { TripInput, TripItinerary, Activity, ItineraryDay } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 import { destinationImages } from '../utils/mockData';
 
 const openai = new OpenAI({
@@ -169,7 +168,7 @@ function convertToTripItinerary(aiResponse: OpenAITripResponse, input: TripInput
     day: day.day,
     date: day.date,
     activities: day.activities.map(activity => ({
-      id: uuidv4(),
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: activity.name,
       description: activity.description,
       time: activity.time,
@@ -184,7 +183,7 @@ function convertToTripItinerary(aiResponse: OpenAITripResponse, input: TripInput
 
   // Convert accommodation
   const accommodation = {
-    id: uuidv4(),
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     name: aiResponse.accommodation.name,
     type: aiResponse.accommodation.type,
     rating: aiResponse.accommodation.rating,
@@ -198,7 +197,7 @@ function convertToTripItinerary(aiResponse: OpenAITripResponse, input: TripInput
 
   // Convert transport
   const transport = aiResponse.transport.map(t => ({
-    id: uuidv4(),
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     type: t.type as any,
     from: t.from,
     to: t.to,
@@ -209,7 +208,7 @@ function convertToTripItinerary(aiResponse: OpenAITripResponse, input: TripInput
   }));
 
   return {
-    id: uuidv4(),
+    id: Date.now().toString(),
     destination: input.destination,
     duration: input.duration,
     budget: input.budget,
@@ -290,7 +289,7 @@ Categories: sightseeing, food, activity, shopping, culture`;
     const suggestions = JSON.parse(response);
     
     return suggestions.map((activity: any) => ({
-      id: uuidv4(),
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: activity.name,
       description: activity.description,
       time: '14:00', // Default time
